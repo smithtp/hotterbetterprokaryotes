@@ -1,0 +1,445 @@
+==================================== Thermal_Models.py ====================================
+Author: Joss Thomas
+Email: jossthomas@maltbyhouse.co.uk
+Last Update: 04/07/16
+
+A python 3 implementation of five different growth models and supporting functions.
+
+The models included are:
+
+Boltzmann Arrhenius: A classic model as described by Boltzmann (1902)
+Schooldfield : A full Schoolfield model as described in Schoolfield (1981)
+Schoolfield Simplified: A Schoolfield model lacking a low temperature correction
+Schoolfield Two Factor: A Schoolfield model fitted using an estimate of the temperature at which the response is greatest
+Linear Model
+Weighted Boltzmann Arrhenius: A set of weighted least squares implementations of the classic BA model
+
+Example scripts:
+    fit_from_database.py : A script which fits the three Schoolfield models to species response curves from Samraat's database. Outputs are plots and a summary csv.
+    fit_to_summary.py : A script which fits a Boltzmann Arrhenius model and two factor Schoolfield model to the TPK and Maximum response estimates produced using the previous script at different taxnomic levels.
+
+Output names indicate model used:
+    LM : Linear model
+    BA : Boltzmann Arrhenius model
+    SCH_F: Full schoolfield model
+    SCH_F_TPK : Full schoolfield model with explicit TPK  
+    SCH_TF: Schoolfield two factor model (no low temperature correction)
+    SCH_TF_TPK : Schoolfield two factor model (no low temperature correction) with explicit TPK  
+    
+------------------------------------ Known Issues (and author version) ------------------------------------    
+
+Lack of a test suite means many issues
+Seaborn throws an error on import, this is harmless. 
+Pandas has columns with multiple data types, this is due to the database and not an issue
+    
+------------------------------------ Dependencies (and author version) ------------------------------------
+Script written using Python 3.5.1, Anaconda Distribution, Windows 10
+
+Uses (author version): 
+    lmfit (0.9.2)
+    Numpy (1.11.0)
+    Pandas (0.17.0)
+    Matplotlib (1.5.1)
+    Seaborn (0.4.0) 
+    Scipy (0.16.0)    
+    progress (1.2)
+
+------------------------------------ Components ------------------------------------
+
+=============== Base Classes ===============
+
+estimate_parameters
+    Purpose:
+        Generates rough estimates of metabolic parameters from a dataset, these can then be passed to the models for fitting using least squares regression.
+        
+    Usage:
+        estimate_parameters(data, index, aux_parameters_names = [] , flags = {})
+        
+        data = Pandas dataframe (see get datasets for more info on creating appropriate frames)
+        aux_parameters_names : A list of the parameters from the database that need to be carried through to the summary for further analysis e.g ['ConKingdom', 'ConPhylum']
+        NB: A list of column names for these parameters must be passed to output_csv when it is call
+        
+        flags : Used to adjust the column names and adjustments of dataset in question. These should be passed as a dictionary to the class, potential keys and default values are shown bwloe
+           
+           
+                    Flag:         |          Default:          |            Purpose:
+            ______________________|____________________________|_________________________________
+            Trait_Col_Name        | 'StandardisedTraitName'    | - The name of the column in which the trait of interest is detailed, used to label the y axis of any plots
+            X_vals_col_name       | 'ConTemp'                  | - The x values to use for the regression
+            Y_vals_col_name       | 'StandardisedTraitValue'   | - The y values to use for the regression
+            x_val_conversion      | 60 * 60 * 24               | - A conversion of the x values, by default this is from S-1 to D-1
+            is_celcius            | True                       | - If TRUE then the X values will be converted to kelvin
+            species_data          | True                       | - Used to generate the plot title, if FALSE only the value from the full_strain_col_name column will be used, if TRUE then the title will be the genus and species. If TRUE and species is blank then will use full_strain_col_name. 
+            full_strain_col_name  | 'Consumer'                 | - Name of the column in which the full species name is contained
+            genus_level_col_name  | 'ConGenus'                 | - Name of the column in which the genus name is contained
+            species_level_col_name| 'ConSpecies'               | - Name of the column in which the species name is contained
+            uncertainty_x_col_name| None                       | - Name of the column in which uncertainty in x values is contained (should not be normalised, bigger number = more uncertainty)
+            uncertainty_y_col_name| None                       | - Name of the column in which uncertainty in y values is contained (should not be normalised, bigger number = more uncertainty)
+
+        An example of flag usage is shown in fit_to_summary.py.
+
+    External calls:
+        estimate_all
+            Usage: parameters.estimate_all()
+
+            Result: Estimates all growth paramters for a dataset
+
+        resample_data
+            Usage: parameters.resample_data()
+
+            Result: Resamples data, useful for bootstrapping. You should call estimate all again after use
+
+        set_estimates
+            Usage: parameters.set_estimates(E=0.7, TPK = 280, ... (any paramter) )
+
+            Result: Can be used to set arbitrary paramters in the object
+            
+        keep_between_temps
+            Usage: keep_between_temps(low_temp, high_temp)
+            
+            Result: Removes data points outside a specific temperature range
+        
+physiological_growth_model
+    Purpose:
+        Base class which other thermal models inherit from. Should not be directly called.
+        
+    Usage:
+        NA
+
+=============== Growth Model Classes ===============
+These five basic classes are identical in terms of usage:    
+    Boltzmann_Arrhenius
+	Schoolfield_Full
+	Schoolfield_Full_TPK
+	Schoolfield_Two_Factor
+	Schoolfield_Two_Factor_TPK
+    LM
+    
+    Purpose:
+        Fit the specified model to the dataset
+        
+    Usage:
+        Ideally use the fit_models wrapping function:
+            models = fit_models(model_names, est_params, tag = i)
+        
+        est_paramss: A parameters estimate object (use the estimate_parameters class)
+        tag:  A string tag to use as the prefix to the model name, defaults to the value of trait
+        
+            
+    External Calls (for any model)
+        print(model) : Will print a summary of the parameters estimated
+        
+        model.plot(out_path, scale_type='standard', plot_residuals=False, hist_axes = False, fit_stats = True, convert_kelvin = False, title_extra = '')
+            Purpose:
+                Creates a scatter plot of the model with a smooth line showing the model plot
+                
+            Required Parameters:
+                out_path, a folder location passed as a string. NB the folder must exist.
+                
+            Optional parameters:
+                scale_type: Can be 'standard' (default, Cartesian coordinates), 
+                                   'log' (both x and y logged),
+                                   'arrhenius' (x = 1/k, y = log(response))
+                                   
+                plot_residuals: Adds a subplot showing residuals
+                
+                hist_axes: Adds histograms of the distribution of the x and y axis running along each exis. Your mileage may vary!
+                
+                fit_stats: Display text on the graph detailing E, the AIC, the BIC and R2
+                
+                convert_kelvin: if set to true will subtract 273.15 from all x values. If scale is log and min(x) < 0 then minimum value will be subtracted from all x values first
+
+                title_extra: a string to add to the end of the plot output filename
+                
+            Note: Plot is implemented as two seperate functions, Plot1 is a standard function and is fairly robust. Plot2 adds histograms to the axes using seaborn and is less robust. Both should be called via the main plot() function. 
+                   
+        model.parameters_dict()
+            Purpose:
+                Returns a dictionary containing the fitted parameters
+                
+            Required Parameters:
+                None
+                
+            Optional Parameters:
+                None
+        
+        Compare models 
+            The operators less than (<) and equal to (==) both function, can be used to compare goodness of fit using AIC and BIC (see rank and flatten)
+            
+            e.g 
+            > model1 < model2
+            TRUE
+            
+            > model1 == model2
+            FALSE
+            
+Weighted Models
+    Purpose: Weighted versions of the boltzman arrhenius model to be ued when there is uncertainties in the X/Y residuals
+    
+    Usage:
+        Ideally use the fit_models wrapping function:
+            models = fit_models(model_names, est_params, tag = i)
+        
+        est_params: A parameters estimate object (use the estimate_parameters class), THIS MUST HAVE SET UNCERTAINTIES
+            A note on uncertainties:
+                Uncertainties are not weights. Higher uncertainty = lower eventual weighting - make sure what you are passing is appropriate for the model you are fitting
+            
+        tag:  A string tag to use as the prefix to the model name, defaults to the value of trait    
+        
+    Available Weightings:
+        boltzmann_arrhenius_two_weights_non_linear
+            Normalises using the inverse of the uncertainty
+            Fits the model by minimising equation: residuals = weights_y (y - yi)^2 + weights_x (x - xi)^2
+            
+        boltzmann_arrhenius_two_weights_linear
+            Normalises using 1 - (arr/arr_max)
+            ISSUE: The savvy reader may note that this method will always set the datpoint with highest uncertainty as weight 0. It may be better to apply the transform to the overall dataset then use the Normalise Only model described below. 
+            Fits the model by minimising equation: residuals = weights_y (y - yi)^2 + weights_x (x - xi)^2
+            
+        boltzmann_arrhenius_two_weights_normalise_only
+            Normalises using arr/arr_max - use this in cases where you pass the weights through paramters, rather than a set of uncertainties
+            Fits the model by minimising equation: residuals = weights_y (y - yi)^2 + weights_x (x - xi)^2
+        
+        boltzmann_arrhenius_one_weight_linear
+            Same as two weight model but no X residuals are used
+            Fits the model by minimising equation: residuals = weights_y (y - yi)^2
+            
+        boltzmann_arrhenius_one_weight_non_linear
+            Same as two weight model but no X residuals are used
+            Fits the model by minimising equation: residuals = weights_y (y - yi)^2
+            
+=============== Functions ===============   
+read_database
+    Purpose: Read Samraat's csv database in Latin1 (capable of reading special characters not in unicode)
+    
+    Usage:
+        read_database(path)
+        
+    Required Arguments:
+        Path: string or path object path to file
+   
+fit_models
+    Purpose: Wrapper function to safely fit each of the 5 models to a dataset
+
+    Returns: A list containing the fitted models specified 
+    
+    Usage: 
+        fit_models(models, estimates, tag=None, print_each=False, use_randomisation=False, randomisation_tries=50, randomisation_scale=1, prog_bar = True):
+    
+        Required Arguments:
+            models: A list of model names in string format:
+                'LM'
+                'Schoolfield_Full'
+                'Schoolfield_Full_TPK'
+                'Schoolfield_Two_Factor'
+				'Schoolfield_Two_Factor_TPK'
+                'Boltzmann_Arrhenius'
+				e.g: ['Schoolfield_Full', 'Schoolfield_Full_TPK']
+        
+        Optional ArgumentsL
+            Tag: A string tag to use as the prefix to the model name, defaults to the value of trait
+            
+            Use Randomisation: If True then starting parameters will be resampled to attempt a better fit
+            
+            randomisation_tries: Number of times to resample randomisation_scale
+            
+            randomisation_scale: Maximum scale of normal distribution used to resample starting parameters, this is cranked up iteratively so consider this a cap not a constant
+            
+            prog_bar: Show a progress bar when randomising
+            
+            print_each: Bool - used to determine if all fits should be printed.
+            
+bootstrap_model
+    Purpose: Resample a model N times to generate a confidence interval
+             NB: Only tested with BA and LM models.
+
+    Returns: A model with confidence interval parameters set
+    
+    Usage: 
+        bootstrap_model(model, parameters, N = 1000, suppress_progress = False):
+        
+        Required Arguments:
+            Model: A fitted regression model you wish to bootstrap
+            
+            Parameters: The parameters estimate object for that model
+            
+        Optional Arguments:
+            N: Number of bootstraps, defaults to 1000
+            
+            suppress_progress: Don't show the progress bar, can cause problems in a few cases
+            
+estimate_uncertainty
+    Purpose: Use sampling of covariance to estimate the uncertainty in TPK and max response
+    
+    Returns: A model with uncertainty parameters set
+    
+    Usage:
+        estimate_uncertainty(model, n=1000)
+        
+        Required Arguments:
+            model: a Schoolfield Sharpe model (NOT a BA or LM)
+            
+        Optional Arguments:
+            n: number of samples
+
+split_datasets
+    Purpose:
+        Split a data frame by species or some other functional group, the outputs of this can then be passed to the models
+        
+    Returns: A dictionary containing sub datasets, the index of the dict can be passed the the model tag to ensure no overwrites            
+    
+    Usage:
+        get_datasets(path, sep = 'OriginalID', _sort = ['ConTemp'])
+        
+        Required Arguments
+            data : A pandas data frame
+                
+        Optional Arguments
+            sep : the name of the column by which the data is split into unique values
+                
+            _sort : pass as a list containing column names, used to sort the output into an order. Can contain multiple names for example ['ConTemp', 'other_col']
+            
+rank_and_flatten
+    Purpose: Flatten a nested list of models and sort them in order of goodness of fit, fit is added as a parameter of the model object
+    
+    Returns: A flat list containing all models passed to it with model.Rank parameters set
+    
+    Usage: 
+        rank_and_flatten([model1, model2], [model3, model4])
+            
+        returns [model1, model2, model3, model4]
+            
+compile_models
+    Purpose: Create a dataframe summary of all models and return that summary
+             
+    Returns: A pd dataframe summary
+                 
+    Usage:
+        output_csv(model_list, aux_cols = [] , whole_curves = False, show_estimates=False , sortby=['Species', 'FinalID'], bootstrap_cols=False)
+            
+        Required Parameters:
+            model_list -  a list of model objects
+                
+        optional parameters:
+            aux_cols: a list of column names as strings for any auxiliary parameters specified when calling estimate_parameters
+                
+            whole_curves: By default only T_Opt and Maximum Response Values are included, if this is set to TRUE then the whole growth curve and fitted model curve will be added to the output. 
+                          If this is TRUE three columns will be added to the output:
+                                Temperature: The temperature value
+                                Response: The response value
+                                Original_Data: Boolean - if TRUE then this is the dataset the model was fitted to, if FALSE then this is the model fit itself
+                              
+                          WARNING: This produces HUGE files for large datasets
+                              
+           sortby: The column names of the output by which the data should be sorted, should be passed as a list
+           
+           bootstrap_cols: If TRUE will add columns for confidence intervals, NB this adds a lot to file size. See bootstrap_model for how to generate CI data.
+           
+           show_estimates: show parameter estimates from regression
+
+normalise_uncertainty
+    Purpose: Normalise an arbitrary number of columns in a dataframe
+             
+    Returns: numpy dataframe
+                 
+    Usage:
+        df = normalise_uncertainty(df, ['col1', 'col2'])
+
+        Required Parameters: dataframe, colnames
+
+weighted_amean 
+    Purpose: Calculate the weighted arithmetic mean of an array
+             
+    Returns: Weighted mean
+                 
+    Usage:
+        arithmetic_mean = weighted_amean(data, weights, normalise_weights = False, geometric = False):
+        geometric mean = weighted_amean(log(data), weights, normalise_weights = False, geometric = True):
+
+        Required Parameters: data: iterable
+                             weights: iterable
+                
+        optional parameters: normalise_weights: call normalise on the weights vector
+                             geometric: return the exponential of the result
+
+weighted_std
+    Purpose: Calculate the weighted standard deviation of an array
+             
+    Returns: Weighted standard deviation
+                 
+    Usage:
+        wstd = weighted_std(data, weights, normalise_weights = False, geometric = False):
+
+        Required Parameters: data: iterable
+                             weights: iterable
+                
+        optional parameters: normalise_weights: call normalise on the weights vector
+                             geometric: Return the exponential of the result
+
+normalise
+    Purpose: Convert an array of uncertainties to an array of weights 
+             
+    Returns: Normalised array
+                 
+    Usage:
+        arr = normalise(arr)
+
+        Required Parameters: Iterabe
+               
+
+clean_paired_data
+    Purpose: Remove rows containing NaN from two arrays 
+             
+    Returns: Two arrays in a tuple
+                 
+    Usage: 
+        arr1, arr2 = clean_paired_data(arr1, arr2)
+
+        Required Parameters: Two iterables
+        
+randomise_estimates
+    Purpose : Generate a set of random parameters sampled from a normal distribution
+    
+    Returns: List of random parameter objects
+    
+    Usage: params = randomise_estimates(parameters, N=100)
+    
+    Required parameters: parameters: a parameters object
+    
+    optional parameters: N: number of randomisations to perform
+    
+find_linear_arrhenius
+    Purpose: Implement the method from Pawar et al (2016) to ensure that Boltzmann Arrhenius models are not skewed by non arrhenius data at high temperatures
+    
+    Usage: params = find_linear_arrhenius(parameters, show = False)
+    
+    Required parameters: parameters: a parameters object
+    
+    Optional parameters: parameters: show: BOOL - show a plot of how the residuals are being adjusted
+    
+plot_many_thermal
+    Purpose: Plot multiple thermal models onto a single graph
+    
+    Usage: plot_many_thermal(arr, path, legend = None, title_extra = '')
+    
+    Required parameters: 
+        arr: An iterable containing one or more Thermal Model objects
+        
+        path: A string indicating where pots should be saved
+        
+    Optional parameters:
+        legend: Custom legend entries as an interable (in the same order as arr)
+        
+        title_extra: A string tag to be appended to the file name (useful if performing multiple plots of similar data)
+        
+plot_weights_histograms
+    purpose: plot a histogram showing the distribution of weights of a thermal model
+    
+    Usage: plot_weights_histograms(model, path)
+    
+    Required parameters: 
+        model : A thermal model object with weights
+        path: A path to save the output at
+        
+        
+               

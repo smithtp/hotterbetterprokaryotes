@@ -106,7 +106,7 @@ Subsequently, we compare E of growth vs E of fluxes in our dataset:
 
 These perform a new clean of the original summary and calculate the group means, E<sub>L</sub>, before producing the associated results figure.
 
-pathogens.R performs a subsequent categorisation of the microbial strains by whether they are pathogenic and if so, what their pathogen carries are - see manuscript methods for detais.
+pathogens.R performs a subsequent categorisation of the microbial strains by whether they are pathogenic and if so, what their pathogen carriers are - see manuscript methods for detais.
 
 Figure production:
 

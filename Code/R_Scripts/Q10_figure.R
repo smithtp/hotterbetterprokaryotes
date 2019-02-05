@@ -1,7 +1,7 @@
-####################################################################
-# Use warming example calculation to produce a figure              #
-# for all autotroph/heterotroph, prokaryote/eukaryote combinations #
-####################################################################
+##############################################################
+# Use warming example calculation to produce a figure        #
+# for all autotroph/heterotroph, bacteria/fungi combinations #
+##############################################################
 library("ggplot2")
 library("directlabels")
 
@@ -27,12 +27,12 @@ Ea <- 0.65 # autotroph E (see fig 3)
 Ep <- 0.87 # average intraspecific E for mesophilic bacteria
 T1 <- 293.15 # 20C
 T2 <- T1+10 # 10C change
-C1 <- 2/(exp(-Ef/(k*T1))) # constant for eukaryotes/fungi
-C2 <- 2/(exp(-Ep/(k*T1))) # constant for prokaryotes
-C3 <- 2/(exp(-Ea/(k*T1))) # constant for autotrophs
+C1 <- 1/(exp(-Ef/(k*T1))) # constant for eukaryotes/fungi
+C2 <- 1/(exp(-Ep/(k*T1))) # constant for prokaryotes
+C3 <- 1/(exp(-Ea/(k*T1))) # constant for autotrophs
 
 # standard Q10 with 0.65eV for comparison
-Q10_standard <- (C1*exp(-Ef/(k*T2)))/(C1*exp(-Ef/(k*T1)))
+ratio_standard <- (C1*exp(-Ef/(k*T2)))/(C1*exp(-Ef/(k*T1)))
 
 
 Q10 <- c()
@@ -55,10 +55,13 @@ for(i in 1:100){
     # first part autotroph vs heterotroph, second part bacteria vs eukaryotes within heterotrophs
     N1 <- d*(C3*exp(-Ea/(k*T1))) + (1-d)*(y*(C2*exp(-Ep/(k*T1))) + (1-y)*(C1*exp(-Ef/(k*T1))))
     N2 <- d*(C3*exp(-Ea/(k*T2))) + (1-d)*(y*(C2*exp(-Ep/(k*T2))) + (1-y)*(C1*exp(-Ef/(k*T2))))
-    Q10_new <- N2/N1
+    flux_ratio_new <- N2/N1
     
     # percentage change from 0.65eV baseline
-    perc_change <- (((Q10_new/Q10_standard)-1)*100)
+    perc_change <- (((flux_ratio_new/ratio_standard)-1)*100)
+    
+    # get the ecosystem Q10
+    Q10_new <- N2^(10/(T2-T1))
     
     # work out the emergent ecosystem E
     E_eco <- d*Ea + ((1-d)*(y*Ep + (1-y)*Ef))
@@ -140,9 +143,9 @@ p3 <- ggplot(short_df, aes(x = (1-auto_hetero)*100, y = prok_euk*100)) +
   coord_fixed() +
   main_theme
 
-ggsave(file = '../../Results/figures/eco_resp_Q10.png', p1, width = 10, height = 8)
+#ggsave(file = '../../Results/figures/eco_resp_Q10.png', p1, width = 10, height = 8)
 ggsave(file = '../../Results/figures/eco_resp_percent.png', p2, width = 10, height = 8)
-ggsave(file = '../../Results/figures/eco_resp_E.png', p3, width = 10, height = 8)
+#ggsave(file = '../../Results/figures/eco_resp_E.png', p3, width = 10, height = 8)
 
 # 3 legends Q10, E, percentage change
 
@@ -152,10 +155,10 @@ ggsave(file = '../../Results/figures/eco_resp_E.png', p3, width = 10, height = 8
 
 Ep <- 0.98 # average inter-specific E for mesophilic bacteria
 T2 <- T1+4 # 4C change
-C2 <- 2/(exp(-Ep/(k*T1))) # constant for prokaryotes
+C2 <- 1/(exp(-Ep/(k*T1))) # constant for prokaryotes
 
 # standard Q10 with 0.65eV for comparison
-Q10_standard <- (C1*exp(-Ef/(k*T2)))/(C1*exp(-Ef/(k*T1)))
+ratio_standard <- (C1*exp(-Ef/(k*T2)))/(C1*exp(-Ef/(k*T1)))
 
 
 Q10 <- c()
@@ -178,10 +181,13 @@ for(i in 1:100){
     # first part autotroph vs heterotroph, second part bacteria vs eukaryotes within heterotrophs
     N1 <- d*(C3*exp(-Ea/(k*T1))) + (1-d)*(y*(C2*exp(-Ep/(k*T1))) + (1-y)*(C1*exp(-Ef/(k*T1))))
     N2 <- d*(C3*exp(-Ea/(k*T2))) + (1-d)*(y*(C2*exp(-Ep/(k*T2))) + (1-y)*(C1*exp(-Ef/(k*T2))))
-    Q10_new <- N2/N1
+    flux_ratio_new <- N2/N1
     
     # percentage change from 0.65eV baseline
-    perc_change <- (((Q10_new/Q10_standard)-1)*100)
+    perc_change <- (((flux_ratio_new/ratio_standard)-1)*100)
+    
+    # get the ecosystem Q10
+    Q10_new <- N2^(10/(T2-T1))
     
     # work out the emergent ecosystem E
     E_eco <- d*Ea + ((1-d)*(y*Ep + (1-y)*Ef))
@@ -222,7 +228,7 @@ p <- p + geom_contour(aes(colour = ..level..), bins = 3, color='gray30', na.rm=T
 p
 
 # Plot 3: This plot has the labeled isolines but it removes the z legend that I want to show
-direct.label(p, list("bottom.pieces", colour='black')) 
+direct.label(p, list("bottom.pieces", colour='black')) # here contours are 3, 6 and 9%
 
 
 p4 <- ggplot(short_df, aes(x = (1-auto_hetero)*100, y = prok_euk*100)) + 
@@ -237,7 +243,87 @@ p4 <- ggplot(short_df, aes(x = (1-auto_hetero)*100, y = prok_euk*100)) +
   coord_fixed() +
   main_theme
 
+p5 <- ggplot(short_df, aes(x = (1-auto_hetero)*100, y = prok_euk*100)) + 
+  geom_tile(aes(fill = Q10)) +
+  #scale_fill_gradient(name = "Q10", low = "yellow", high = "red") +
+  scale_fill_gradient(name = expression("Q"["10"]), low = "white", high = "black") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  stat_contour(aes(z = change), bins = 3, color = "grey50", size = 2) +
+  labs(title = "Long-Term Changes in Ecosystem Respiration",
+       x = "Percentage Heterotrophs vs Autotrophs",
+       y = "Percentage Bacteria within Heterotrophs") +
+  coord_fixed() +
+  main_theme
+
+p6 <- ggplot(short_df, aes(x = (1-auto_hetero)*100, y = prok_euk*100)) + 
+  geom_tile(aes(fill = eco_E)) +
+  scale_fill_gradient(name = expression(paste("Emergent ", italic("E"))), low = "white", high = "black") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  stat_contour(aes(z = change), bins = 3, color = "grey50", size = 2) +
+  labs(title = "Long-Term Changes in Ecosystem Respiration",
+       x = "Percentage Heterotrophs vs Autotrophs",
+       y = "Percentage Bacteria within Heterotrophs") +
+  coord_fixed() +
+  main_theme
+
 ggsave(file = '../../Results/figures/long_term_change.png', p4, width = 10, height = 8)
+#ggsave(file = '../../Results/figures/long_term_Q10.png', p5, width = 10, height = 8)
+#ggsave(file = '../../Results/figures/long_term_E.png', p6, width = 10, height = 8)
 
 ###################################################################################
+# now just want to quickly ask what a percentage point of bacteria means to 
+# the percentage flux and E respectively
+###################################################################################
 
+# check at 50% A:H 50% P:E first...
+test_df <- short_df[short_df$auto_hetero == 0.5 & short_df$prok_euk >= 0.5 & short_df$prok_euk < 0.55,]
+
+test_df$E_change <- NA
+test_df$E_change[1] <- test_df$eco_E[2]-test_df$eco_E[1]
+test_df$E_change[2] <- test_df$eco_E[3]-test_df$eco_E[2]
+test_df$E_change[3] <- test_df$eco_E[4]-test_df$eco_E[3]
+test_df$E_change[4] <- test_df$eco_E[5]-test_df$eco_E[4]
+
+test_df$perc_change <- NA
+test_df$perc_change[1] <- test_df$change[2]-test_df$change[1]
+test_df$perc_change[2] <- test_df$change[3]-test_df$change[2]
+test_df$perc_change[3] <- test_df$change[4]-test_df$change[3]
+test_df$perc_change[4] <- test_df$change[5]-test_df$change[4]
+
+test_df
+
+# that's 0.00165 E and 0.1 flux per percentage point of bacteria... but does that depend on the bacteria within the system?
+
+test_df_2 <- short_df[short_df$auto_hetero == 0.26 & short_df$prok_euk >= 0.5 & short_df$prok_euk < 0.55,]
+
+test_df_2$E_change <- NA
+test_df_2$E_change[1] <- test_df_2$eco_E[2]-test_df_2$eco_E[1]
+test_df_2$E_change[2] <- test_df_2$eco_E[3]-test_df_2$eco_E[2]
+test_df_2$E_change[3] <- test_df_2$eco_E[4]-test_df_2$eco_E[3]
+test_df_2$E_change[4] <- test_df_2$eco_E[5]-test_df_2$eco_E[4]
+
+test_df_2$perc_change <- NA
+test_df_2$perc_change[1] <- test_df_2$change[2]-test_df_2$change[1]
+test_df_2$perc_change[2] <- test_df_2$change[3]-test_df_2$change[2]
+test_df_2$perc_change[3] <- test_df_2$change[4]-test_df_2$change[3]
+test_df_2$perc_change[4] <- test_df_2$change[5]-test_df_2$change[4]
+
+test_df_2
+
+test_df_3 <- short_df[short_df$auto_hetero == 0.74 & short_df$prok_euk >= 0.5 & short_df$prok_euk < 0.55,]
+
+test_df_3$E_change <- NA
+test_df_3$E_change[1] <- test_df_3$eco_E[2]-test_df_3$eco_E[1]
+test_df_3$E_change[2] <- test_df_3$eco_E[3]-test_df_3$eco_E[2]
+test_df_3$E_change[3] <- test_df_3$eco_E[4]-test_df_3$eco_E[3]
+test_df_3$E_change[4] <- test_df_3$eco_E[5]-test_df_3$eco_E[4]
+
+test_df_3$perc_change <- NA
+test_df_3$perc_change[1] <- test_df_3$change[2]-test_df_3$change[1]
+test_df_3$perc_change[2] <- test_df_3$change[3]-test_df_3$change[2]
+test_df_3$perc_change[3] <- test_df_3$change[4]-test_df_3$change[3]
+test_df_3$perc_change[4] <- test_df_3$change[5]-test_df_3$change[4]
+
+test_df_3

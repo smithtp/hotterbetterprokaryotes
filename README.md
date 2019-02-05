@@ -106,6 +106,15 @@ Subsequently, we compare E of growth vs E of fluxes in our dataset:
 
 These perform a new clean of the original summary and calculate the group means, E<sub>L</sub>, before producing the associated results figure.
 
+pathogens.R performs a subsequent categorisation of the microbial strains by whether they are pathogenic and if so, what their pathogen carries are - see manuscript methods for detais.
+
+Figure production:
+
+    Figure 2 produced by combining plot 1_Temp_Overlap_Plot_2.png (from Code/07_Final_analysis_temppref.R) with archaea_TempPref_weighted_axis_flip.png and bacteria_TempPref_weighted_axis_flip (from Code/08_temperature_figures.R)
+    Figure 3 produced by combining ES_plot.png and ES_plot_funct.png from Code/ES_figure.R
+    Figure 4 produced directly in Flux_vs_Growth.R
+    Figure 5 produced by combining the output figures and additional legends from Code/Q10_figure.R
+
 
 ## Citation
 

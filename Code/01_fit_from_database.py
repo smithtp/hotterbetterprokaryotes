@@ -45,7 +45,7 @@ for i in Datasets.keys(): #Iterate through the dictionary by key
         if best_model.final_E > 0.001: #Checks that the model actually has a growth response
             all_models.append(models) #could also be all_models.append(best_model) if you aren't interested in the alternate fits
         print(best_model)
-        #best_model.plot('../Results/fits', convert_kelvin = True, show_estimates=False) # want to see the fits in celsius, though currently incompatible with plotting uncertainty - TS
+        best_model.plot('../Results/fits', convert_kelvin = True, show_estimates=False) # want to see the fits in celsius, though currently incompatible with plotting uncertainty - TS
          
 all_models = rank_and_flatten(all_models)
 output_data = compile_models(all_models, show_estimates=True, aux_cols = aux_parameters) #Save the summary in two places

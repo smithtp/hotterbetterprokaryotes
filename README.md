@@ -83,7 +83,7 @@ These read the database and attempt to fit the two-factor Schoolfield model (or 
 
 These R scripts perform the segmented analysis that we used to determine the temperature break-points in the data (see manuscript methods). These break-points are used to assign strains as mesophiles or thermophiles and this information added to the summary data.
 
-Note that these R scripts set a working directory (location of the script within the file system) and then use relative paths to read from \Data\ and write to \Resuts\. Users should edit the "setwd()" line to the location of the \Code\ directory within their own file architecture. Relative paths are written for linux directory structure, so Windows users would need to alter these within the scripts (backslashes to forward-slashes).
+Note that these R scripts set a working directory (location of the script within the file system) and then use relative paths to read from /Data/ and write to /Results/. Users should edit the "setwd()" line to the location of the /Code/ directory within their own file architecture. Relative paths are written for linux directory structure, so Windows users would need to alter these within the scripts (forward-slashes to backslashes).
 
     > python 05_calc_group_means_no_agg.py
     > python 06_fit_to_summary_no_agg.py
@@ -96,6 +96,10 @@ Here we calculate the group means (short term responses, E<sub>S</sub> in the ma
 Finally, we compare E<sub>S</sub> and E<sub>L</sub> for our taxonomic and temperature groupings to ask whether "hotter is better" (see manuscript methods).
 
 ### Further Analysis and Figures
+
+First we need to remove pseudoreplicates from the autotroph dataset:
+
+    R_Scripts/Autotroph_data.R
 
 Subsequently, we compare E of growth vs E of fluxes in our dataset:
 

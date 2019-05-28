@@ -70,22 +70,7 @@ Kingdom_Overlap_Plot <- ggplot(Kingdom_front, aes(x=ConKingdom)) +
 Kingdom_Overlap_Plot
 
 
-## lets add a histogram alongside
-
-Kingdom_Histogram_Plot <- ggplot(Kingdom_back, aes(x=E)) +
-  geom_histogram(aes(group=ConKingdom, colour=ConKingdom, fill=ConKingdom), alpha=0.3, binwidth = 0.2) +
-  xlim(0, 5) +
-  ylab("Frequency") +
-  geom_vline(aes(xintercept=0.65), linetype='dotted') +
-  coord_flip() + scale_y_reverse() +
-  main_theme +
-  theme(legend.title=element_blank(),
-        legend.justification=c(0,1), legend.position=c(0,1),
-        axis.title.y=element_blank(),
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) +
-  theme(plot.margin = unit(c(1,1,1,0), "cm"))
-Kingdom_Histogram_Plot
+## lets add a density plot alongside
 
 Flux_Density_Plot <- ggplot(Flux_back, aes(x=E)) +
   geom_density(aes(group=ConKingdom, fill=ConKingdom), alpha=0.5) +
@@ -138,11 +123,11 @@ dev.off()
 
 ### Add in data from Sofia on plant resp fluxes
 
-e_data <- read.csv("../../Data/sofia_data/DataAutotrophs.csv")
+e_data <- read.csv("../../Data/sofia_data/DataAutotrophs_nopseudo.csv")
 
 # density plot
 
-sofia_density_plot <- ggplot(e_data, aes(x = E_sch)) +
+sofia_density_plot <- ggplot(e_data, aes(x = E)) +
   geom_density(aes(group = id_process, fill = id_process), alpha = 0.5) +
   xlim(0, 3) +
   ylab("Density") +

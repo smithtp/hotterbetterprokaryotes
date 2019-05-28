@@ -161,3 +161,130 @@ ES_plot_funct <- ggplot(combined_data_funct, aes(x = E, y = Functional_Group_lab
   theme(legend.title=element_blank(), legend.position=c(0.85,0.6))
 ES_plot_funct
 dev.off()
+
+
+
+############################################################
+## Now repeat for the autotroph dataset                    #
+############################################################
+
+data_autotrophs <- read.csv("../../Data/sofia_data/DataAutotrophs_nopseudo.csv")
+
+# we're going to need to do the bootstrap of weighted mean on E for different groups
+
+# implement bootstrapping code for CIs, like the python code
+
+resample_all <- function(x){
+  boot_nums = c()
+  len_x = length(x)
+  for (i in 1:1000){
+    boot_nums <- c(boot_nums, mean(sample(x, len_x, replace=TRUE)))
+  }
+  return( boot_nums )
+} 
+
+bootstrap_upper <- function(x){
+  sample <- resample_all(x)
+  quant = as.single(quantile(sample, 0.975))[1]
+  return(quant)
+}
+
+bootstrap_mean <- function(x){
+  sample <- resample_all(x)
+  mn <- as.single(mean(sample))[1]
+  return(mn)
+}
+
+bootstrap_lower <- function(x){
+  sample <- resample_all(x)
+  quant = as.single(quantile(sample, 0.025))[1]
+  return(quant)
+}
+
+# make a dataframe to put things in
+combined_data_autotroph <- data.frame(matrix(NA, 7, 8))
+names(combined_data_autotroph) <- c("Group", "E", "E_min", "E_max", "Length", "E_median", "Level", "Group_labels")
+
+# now bootstrap E first for terrestrial/aqauatic
+terr_data <- data_autotrophs[data_autotrophs$habitat == "Terrestrial",]
+combined_data_autotroph$Group[1] <- "Terrestrial"
+combined_data_autotroph$E[1] <- bootstrap_mean(terr_data$E)
+combined_data_autotroph$E_min[1] <- bootstrap_lower(terr_data$E)
+combined_data_autotroph$E_max[1] <- bootstrap_upper(terr_data$E)
+combined_data_autotroph$Length[1] <- length(terr_data$E)
+combined_data_autotroph$E_median[1] <- median(terr_data$E)
+combined_data_autotroph$Level[1] <- "Habitat"
+
+aq_data <- data_autotrophs[data_autotrophs$habitat == "Aquatic",]
+combined_data_autotroph$Group[2] <- "Aquatic"
+combined_data_autotroph$E[2] <- bootstrap_mean(aq_data$E)
+combined_data_autotroph$E_min[2] <- bootstrap_lower(aq_data$E)
+combined_data_autotroph$E_max[2] <- bootstrap_upper(aq_data$E)
+combined_data_autotroph$Length[2] <- length(aq_data$E)
+combined_data_autotroph$E_median[2] <- median(aq_data$E)
+combined_data_autotroph$Level[2] <- "Habitat"
+
+# now do the taxonomic group levels
+plants <- data_autotrophs[data_autotrophs$TaxonomicGroup == "Vascular Plants",]
+combined_data_autotroph$Group[3] <- "Vascular Plants"
+combined_data_autotroph$E[3] <- bootstrap_mean(plants$E)
+combined_data_autotroph$E_min[3] <- bootstrap_lower(plants$E)
+combined_data_autotroph$E_max[3] <- bootstrap_upper(plants$E)
+combined_data_autotroph$Length[3] <- length(plants$E)
+combined_data_autotroph$E_median[3] <- median(plants$E)
+combined_data_autotroph$Level[3] <- "Taxonomic Group"
+
+greenalgae <- data_autotrophs[data_autotrophs$TaxonomicGroup == "Green Algae",]
+combined_data_autotroph$Group[4] <- "Green Algae"
+combined_data_autotroph$E[4] <- bootstrap_mean(greenalgae$E)
+combined_data_autotroph$E_min[4] <- bootstrap_lower(greenalgae$E)
+combined_data_autotroph$E_max[4] <- bootstrap_upper(greenalgae$E)
+combined_data_autotroph$Length[4] <- length(greenalgae$E)
+combined_data_autotroph$E_median[4] <- median(greenalgae$E)
+combined_data_autotroph$Level[4] <- "Taxonomic Group"
+
+redalgae <- data_autotrophs[data_autotrophs$TaxonomicGroup == "Red Algae",]
+combined_data_autotroph$Group[5] <- "Red Algae"
+combined_data_autotroph$E[5] <- bootstrap_mean(redalgae$E)
+combined_data_autotroph$E_min[5] <- bootstrap_lower(redalgae$E)
+combined_data_autotroph$E_max[5] <- bootstrap_upper(redalgae$E)
+combined_data_autotroph$Length[5] <- length(redalgae$E)
+combined_data_autotroph$E_median[5] <- median(redalgae$E)
+combined_data_autotroph$Level[5] <- "Taxonomic Group"
+
+brownalgae <- data_autotrophs[data_autotrophs$TaxonomicGroup == "Brown Algae",]
+combined_data_autotroph$Group[6] <- "Brown Algae"
+combined_data_autotroph$E[6] <- bootstrap_mean(brownalgae$E)
+combined_data_autotroph$E_min[6] <- bootstrap_lower(brownalgae$E)
+combined_data_autotroph$E_max[6] <- bootstrap_upper(brownalgae$E)
+combined_data_autotroph$Length[6] <- length(brownalgae$E)
+combined_data_autotroph$E_median[6] <- median(brownalgae$E)
+combined_data_autotroph$Level[6] <- "Taxonomic Group"
+
+mosses <- data_autotrophs[data_autotrophs$TaxonomicGroup == "Mosses",]
+combined_data_autotroph$Group[7] <- "Mosses"
+combined_data_autotroph$E[7] <- bootstrap_mean(mosses$E)
+combined_data_autotroph$E_min[7] <- bootstrap_lower(mosses$E)
+combined_data_autotroph$E_max[7] <- bootstrap_upper(mosses$E)
+combined_data_autotroph$Length[7] <- length(mosses$E)
+combined_data_autotroph$E_median[7] <- median(mosses$E)
+combined_data_autotroph$Level[7] <- "Taxonomic Group"
+
+combined_data_autotroph$Group_labels <- paste(combined_data_autotroph$Group, " (", combined_data_autotroph$Length, ")", sep = "")
+
+png("../../Results/figures/ES_plot_autotroph.png", height = 600, width = 1600)
+ES_plot_autotroph <- ggplot(combined_data_autotroph, aes(x = E, y = Group_labels)) +
+  geom_point(size = 10) +
+  geom_errorbarh(aes(xmax=E_max, xmin=E_min), size = 3) +
+  geom_point(aes(x = E_median), size = 8, fill = "#CCCCCC", shape= 24) +
+  geom_vline(aes(xintercept=0.65), linetype = 'dotted', size = 2) +
+  main_theme +
+  #coord_cartesian(xlim=c(0, 3)) +
+  #ylab("Group") +
+  xlab("Thermal Sensitivity (eV)") +
+  facet_grid(Level ~ ., scales='free', space = "free")  +
+  theme(strip.text.y = element_text(angle = 0)) +
+  theme(legend.title=element_blank(), legend.position=c(0.85,0.6),
+        axis.title.y = element_blank())
+ES_plot_autotroph
+dev.off()

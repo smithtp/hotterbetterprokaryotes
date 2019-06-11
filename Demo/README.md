@@ -13,3 +13,5 @@ To fit the 4-parameter Sharpe-Schoolfield model to these data, simply run the de
 ## Expected outputs
 
 The command line will feed back parameter estimates from each fit and the folder locations of the outputs. Figures from each of the 5 fits should be found in the /Results/ directory, along with summary.csv detailing the fitting results.
+
+Demo code is expected to take seconds to run.

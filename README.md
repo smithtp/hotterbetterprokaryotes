@@ -21,11 +21,12 @@ Data and code for prokaryote thermal sensitivity project, bioRxiv pre-print doi:
 
 Repository contains the full raw prokaryote TPC dataset, alongside the thermal fitting code (python) and analysis scripts (R) required to reproduce the main results and figures for our bioRxiv pre-print.
 
-  * \Data\ - contains the raw datasets.
-  * \Code\ - contains the python wrapper scripts to run the fitting code.
-  * \Code\Thermal_Models\ - the underlying thermal fitting code. A thorough README.md file describes the code and functions in detail.
-  * \Code\R_scripts\ - analysis code written in R to produce results figures.
-  * \Results\ - summaries of fitting results, TPC fit figures and results figures produced for manuscript.
+  * /Data/ - contains the raw datasets.
+  * /Code/ - contains the python wrapper scripts to run the fitting code.
+  * /Code/Thermal_Models/ - the underlying thermal fitting code. A thorough README.md file describes the code and functions in detail.
+  * /Code/R_scripts/ - analysis code written in R to produce results figures.
+  * /Results/ - summaries of fitting results, TPC fit figures and results figures produced for manuscript.
+  * /Demo/ - short demo of the fitting code
 
 
 ## Software Requirements
@@ -67,7 +68,11 @@ or download zip
 
     https://github.com/smithtp/hotterbetterprokaryotes/archive/master.zip
 
-The repository requires no installation or compilation of code once downloaded. Ensure python, R and required packages are installed (see software requirements), and fitting and analysis scripts can then be run.
+The repository requires no installation or compilation of code once downloaded. Ensure python, R and required packages are installed (see software requirements), and fitting and analysis scripts can then be run. Installation time - less than a minute to download and extra package. Installation of python and R dependancies will increase this time.
+
+### Demo
+
+A short demo of the Schoolfield TPC fitting code and result outputs - try this first. Folder contains own README.md instructions.
 
 ### Main Analysis
 

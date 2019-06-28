@@ -9,9 +9,10 @@
     1. Python
     2. R
 4. Instructions for Use
-    1. Main Analysis
-    2. Further Analysis and Figures
-6. Citation
+    1. Demo
+    2. Main Analysis
+    3. Further Analysis and Figures
+5. Citation
 
 ## Overview
 
@@ -72,11 +73,11 @@ The repository requires no installation or compilation of code once downloaded. 
 
 ### Demo
 
-A short demo of the Schoolfield TPC fitting code and result outputs - try this first. Folder contains own README.md instructions.
+A short demo of the Schoolfield TPC fitting code and result outputs - try this first. Navigate to /Demo/ - Folder contains own README.md instructions.
 
 ### Main Analysis
 
-To run through main fitting code and analysis:
+First navigate to /Code/. To run through main fitting code and analysis:
 
     > python 01_fit_from_database.py
     > python 02_clean_summary.py

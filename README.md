@@ -5,14 +5,15 @@
 ## Table of Contents
 1. Overview
 2. Repository Contents
-3. Software Requirements
+3. Dataset
+4. Software Requirements
     1. Python
     2. R
-4. Instructions for Use
+5. Instructions for Use
     1. Demo
     2. Main Analysis
     3. Further Analysis and Figures
-5. Citation
+6. Citation
 
 ## Overview
 
@@ -29,6 +30,11 @@ Repository contains the full raw prokaryote TPC dataset, alongside the thermal f
   * /Results/ - summaries of fitting results, TPC fit figures and results figures produced for manuscript.
   * /Demo/ - short demo of the fitting code
 
+## Dataset
+
+The full raw TPC dataset can be found at /Data/dataset.csv
+
+This .csv file provides all of the raw prokaryote data collected in this study, to which thermal response curves were fit. Each line contains a growth rate or metabolic rate recorded at a certain temperature (field "ConTemp", Celsius). The rates are recorded in the orignial units presented by the authors (fields "OriginalTraitValue" and "OriginalTraitUnits") and also converted into standard SI units for this study (fields "StandardisedTraitValue" and "StandardisedTraitUnits"). The original references for the data are given in the "Citation" and "DOI" fields. A full description of all relevent fields in the data file is given in /Data/datafields.odt
 
 ## Software Requirements
 

@@ -17,7 +17,7 @@
 
 ## Overview
 
-Data and code for prokaryote thermal sensitivity project, bioRxiv pre-print doi: https://doi.org/10.1101/524264 
+Data and code for prokaryote thermal sensitivity project, Nature Communications doi: https://doi.org/10.1038/s41467-019-13109-1
 
 ## Repository Contents
 
@@ -134,6 +134,6 @@ Figure production:
 
 ## Citation
 
-If using this thermal fitting code, please cite our bioRxiv pre-print (https://doi.org/10.1101/524264)
+If using this thermal fitting code, please cite the Nature Communications paper (https://doi.org/10.1038/s41467-019-13109-1)
 
 
